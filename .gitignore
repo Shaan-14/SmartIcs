@@ -1,0 +1,14 @@
+# API keys
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+#credentials
+credentials.json
+token.json
+#caldendar files
+*.ics

@@ -1,0 +1,8 @@
+Google Calendar API:
+https://developers.google.com/workspace/calendar/api/guides/overview
+SportsDB API:
+https://www.thesportsdb.com/documentation 
+Gemini API:
+https://ai.google.dev/gemini-api/docs 
+OAuth:
+https://oauth.net/code/python/
