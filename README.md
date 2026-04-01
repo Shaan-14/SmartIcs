@@ -35,7 +35,7 @@ SmartIcs automatically organizes your academic deadlines, everyday events, and f
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ShaimaaAliECE/group-project-smartics.git
+git clone https://github.com/Shaan-14/SmartIcs.git
 cd group-project-smartics
 ```
 
