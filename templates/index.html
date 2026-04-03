@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartIcs</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #2a9d8f; --teal-dark: #1f7a6e; --teal-light: #e8f5f3;
+    --bg: #eef3f7; --card: #ffffff; --text: #1a2332; --muted: #6b7a8d;
+    --border: #dde3ea; --blue: #3b6fd4; --green: #27ae60; --red: #e74c3c;
+    --radius: 14px; --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* LOGIN */
+  #login-page { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#eef3f7 0%,#d4e8e4 100%); }
+  .login-card { background:var(--card); border-radius:20px; padding:48px 40px; width:380px; box-shadow:0 8px 40px rgba(42,157,143,.12); text-align:center; }
+  .login-logo { font-family:'DM Serif Display',serif; font-size:32px; color:var(--text); margin-bottom:4px; }
+  .login-sub { font-size:13px; color:var(--muted); margin-bottom:36px; }
+  .login-card input { width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; margin-bottom:12px; transition:border-color .2s; }
+  .login-card input:focus { border-color:var(--teal); }
+  .btn-primary { width:100%; padding:13px; background:var(--teal); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; margin-top:4px; }
+  .btn-primary:hover { background:var(--teal-dark); }
+  .login-divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--muted); font-size:13px; }
+  .login-divider::before,.login-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+  .btn-google { width:100%; padding:12px; background:white; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:border-color .2s,background .2s; }
+  .btn-google:hover { border-color:var(--teal); background:var(--teal-light); }
+
+  /* APP */
+  #app { display:none; min-height:100vh; }
+  header { background:white; border-bottom:1px solid var(--border); padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .brand-name { font-family:'DM Serif Display',serif; font-size:20px; line-height:1; }
+  .brand-tag { font-size:11px; color:var(--muted); }
+  .header-right { display:flex; align-items:center; gap:12px; }
+  .gcal-pill { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; padding:6px 12px; border-radius:20px; cursor:pointer; transition:opacity .2s; }
+  .gcal-pill.on  { background:#e8f5e9; color:#2e7d32; }
+  .gcal-pill.off { background:#fce4ec; color:#c62828; }
+  .gcal-pill .dot { width:7px; height:7px; border-radius:50%; }
+  .gcal-pill.on .dot { background:#2e7d32; }
+  .gcal-pill.off .dot { background:#c62828; }
+  .btn-logout { display:flex; align-items:center; gap:6px; background:none; border:none; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--muted); cursor:pointer; padding:8px 12px; border-radius:8px; transition:background .2s; }
+  .btn-logout:hover { background:#f5f5f5; color:var(--text); }
+
+  main { max-width:1280px; margin:0 auto; padding:28px 24px; display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card { background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); }
+  .card-title { font-size:16px; font-weight:600; margin-bottom:16px; color:var(--text); display:flex; align-items:center; gap:8px; }
+  .full-width { grid-column:1/-1; }
+  .badge { display:inline-flex; align-items:center; background:var(--teal-light); color:var(--teal-dark); border-radius:20px; padding:2px 10px; font-size:11px; font-weight:600; }
+
+  /* DROP ZONE */
+  .drop-zone { border:2px dashed var(--border); border-radius:10px; padding:32px 20px; text-align:center; transition:border-color .2s,background .2s; cursor:pointer; }
+  .drop-zone.dragover { border-color:var(--teal); background:var(--teal-light); }
+  .drop-icon { width:40px; height:40px; margin:0 auto 12px; color:var(--muted); }
+  .drop-text { font-size:14px; color:var(--muted); margin-bottom:4px; }
+  .drop-or { font-size:12px; color:#aaa; margin:8px 0; }
+  .btn-browse { display:inline-block; padding:9px 22px; background:var(--teal); color:white; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-browse:hover { background:var(--teal-dark); }
+  .file-list { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .file-item { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--teal-light); border-radius:8px; font-size:13px; color:var(--teal-dark); }
+
+  /* TEXT */
+  .text-area { width:100%; min-height:130px; padding:12px 14px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); resize:vertical; outline:none; transition:border-color .2s; }
+  .text-area:focus { border-color:var(--teal); }
+
+  /* SPORTS */
+  .form-label { font-size:13px; font-weight:500; color:var(--text); margin-bottom:6px; display:block; }
+  .select-styled { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); background:white; outline:none; cursor:pointer; transition:border-color .2s; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a8d' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; margin-bottom:14px; }
+  .select-styled:focus { border-color:var(--teal); }
+  .teams-label { font-size:13px; font-weight:500; margin-bottom:8px; color:var(--text); }
+  .teams-list { border:1.5px solid var(--border); border-radius:10px; height:180px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .teams-list::-webkit-scrollbar { width:6px; }
+  .teams-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  .team-item { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; transition:background .15s; border-bottom:1px solid #f0f0f0; font-size:14px; }
+  .team-item:last-child { border-bottom:none; }
+  .team-item:hover { background:var(--teal-light); }
+  .team-item.selected { background:var(--teal-light); color:var(--teal-dark); font-weight:500; }
+  .team-icon { width:20px; height:20px; color:var(--teal); flex-shrink:0; }
+  .check-icon { margin-left:auto; color:var(--teal); display:none; }
+  .team-item.selected .check-icon { display:block; }
+  .selected-teams-bar { margin-top:12px; display:none; }
+  .selected-teams-bar.has-teams { display:block; }
+  .stb-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+  .selected-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .team-tag { display:flex; align-items:center; gap:5px; background:var(--teal-light); color:var(--teal-dark); border-radius:20px; padding:4px 10px 4px 12px; font-size:12px; font-weight:500; }
+  .team-tag-remove { background:none; border:none; cursor:pointer; color:var(--teal); font-size:14px; padding:0; line-height:1; }
+
+  /* ACTION BUTTONS */
+  .btn-action { width:100%; padding:11px; background:var(--teal); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .2s; margin-top:10px; }
+  .btn-action:hover { background:var(--teal-dark); }
+  .btn-action:disabled { opacity:.55; cursor:not-allowed; }
+  .btn-create-event { width:100%; padding:14px; background:var(--teal); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .2s; }
+  .btn-create-event:hover { background:var(--teal-dark); }
+
+  /* EVENTS TABLE */
+  .events-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .events-table th { text-align:left; padding:8px 10px; color:var(--muted); font-weight:500; border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .events-table td { padding:9px 10px; border-bottom:1px solid #f5f5f5; }
+  .events-table tr:last-child td { border-bottom:none; }
+  .src-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+  .src-badge.syllabus { background:#fff3e0; color:#e65100; }
+  .src-badge.sports   { background:#e8f5e9; color:#2e7d32; }
+  .src-badge.manual   { background:#e8eaf6; color:#3949ab; }
+  .src-badge.study    { background:var(--teal-light); color:var(--teal-dark); }
+  .events-empty { padding:24px; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* EXPORT */
+  .export-buttons { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px; }
+  .btn-ics { padding:14px; background:var(--blue); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s; }
+  .btn-ics:hover { opacity:.9; }
+  .btn-gcal { padding:14px; background:var(--green); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity .2s; }
+  .btn-gcal:hover { opacity:.9; }
+  .btn-gcal:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; align-items:center; justify-content:center; z-index:1000; backdrop-filter:blur(2px); }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:18px; width:500px; max-width:95vw; max-height:90vh; overflow-y:auto; padding:32px; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:modalIn .2s ease; }
+  @keyframes modalIn { from{opacity:0;transform:translateY(12px) scale(.98)} to{opacity:1;transform:none} }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .modal-title { font-size:18px; font-weight:600; }
+  .btn-close { background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; border-radius:6px; display:flex; }
+  .btn-close:hover { background:#f5f5f5; }
+  .form-group { margin-bottom:18px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color .2s; color:var(--text); }
+  .form-input:focus { border-color:var(--teal); }
+  .form-textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; resize:vertical; min-height:90px; transition:border-color .2s; color:var(--text); }
+  .form-textarea:focus { border-color:var(--teal); }
+  .recurrence-section { border-top:1px solid var(--border); padding-top:18px; margin-top:4px; }
+  .recurrence-title { font-size:15px; font-weight:600; margin-bottom:14px; }
+  .recurrence-extra { display:none; margin-top:12px; }
+  .recurrence-extra.show { display:block; }
+  .hint { font-size:11px; color:var(--muted); margin-top:4px; }
+  .modal-footer { display:flex; gap:10px; margin-top:24px; }
+  .btn-cancel { flex:1; padding:12px; background:white; border:1.5px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
+  .btn-cancel:hover { background:#f5f5f5; }
+  .btn-submit { flex:2; padding:12px; background:var(--teal); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .btn-submit:hover { background:var(--teal-dark); }
+  .required { color:var(--teal); }
+  .day-checkboxes { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .day-cb { display:flex; align-items:center; background:#f5f5f5; border-radius:6px; padding:5px 10px; cursor:pointer; font-size:12px; font-weight:500; border:1.5px solid transparent; transition:all .15s; user-select:none; }
+  .day-cb input { display:none; }
+  .day-cb.checked { background:var(--teal-light); border-color:var(--teal); color:var(--teal-dark); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:white; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:500; z-index:2000; opacity:0; transform:translateY(8px); transition:opacity .2s,transform .2s; pointer-events:none; max-width:320px; }
+  .toast.show { opacity:1; transform:translateY(0); }
+  .toast.err { background:var(--red); }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.35); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">SmartIcs</div>
+    <div class="login-sub">AI-Powered Student Calendar</div>
+    <input type="email" placeholder="Email address" id="login-email"/>
+    <input type="password" placeholder="Password" id="login-pass"/>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+    <div class="login-divider">or</div>
+    <button class="btn-google" onclick="doLogin()">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div>
+      <div class="brand-name">SmartIcs</div>
+      <div class="brand-tag">AI-Powered Student Calendar</div>
+    </div>
+    <div class="header-right">
+      <div class="gcal-pill off" id="gcal-pill" onclick="connectGCal()">
+        <div class="dot"></div>
+        <span id="gcal-pill-text">Google Calendar: Not Connected</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- PDF DROP -->
+    <div class="card">
+      <div class="card-title">PDF Drag and Drop <span class="badge" id="pdf-badge" style="display:none"></span></div>
+      <div class="drop-zone" id="drop-zone"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="handleDrop(event)">
+        <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="drop-text">Drag and drop PDF syllabi here</div>
+        <div class="drop-or">or</div>
+        <input type="file" id="file-input" accept=".pdf" multiple style="display:none" onchange="handleFiles(this.files)"/>
+        <button class="btn-browse" onclick="document.getElementById('file-input').click()">Browse Files</button>
+      </div>
+      <div class="file-list" id="file-list"></div>
+    </div>
+
+    <!-- SPORTS -->
+    <div class="card">
+      <div class="card-title">Sports Selector <span class="badge" id="sports-badge" style="display:none"></span></div>
+      <label class="form-label">Select League</label>
+      <select class="select-styled" id="league-select" onchange="updateTeams()">
+        <option disabled selected>Loading leagues...</option>
+      </select>
+      <div class="teams-label" id="teams-label">Select Teams (0 selected)</div>
+      <div class="teams-list" id="teams-list"></div>
+      <div class="selected-teams-bar" id="selected-teams-bar">
+        <div class="stb-label" style="margin-top:10px">Selected across all leagues</div>
+        <div class="selected-tags" id="selected-tags"></div>
+      </div>
+      <button class="btn-action" id="fetch-btn" onclick="fetchSelectedSchedules()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Fetch Schedules
+      </button>
+    </div>
+
+    <!-- TEXT UPLOAD -->
+    <div class="card">
+      <div class="card-title">Text Upload <span class="badge" id="text-badge" style="display:none"></span></div>
+      <textarea class="text-area" placeholder="Paste syllabus text or event details here..." id="text-upload"></textarea>
+      <button class="btn-action" id="parse-btn" onclick="parseText()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Parse Text
+      </button>
+    </div>
+
+    <!-- MANUAL EVENT -->
+    <div class="card">
+      <div class="card-title">Manual Event Creation <span class="badge" id="manual-badge" style="display:none"></span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Add a custom event with optional recurrence rules.</p>
+      <button class="btn-create-event" onclick="openModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Create Event
+      </button>
+    </div>
+
+    <!-- STUDY BLOCKS -->
+    <div class="card full-width">
+      <div class="card-title">AI Study Blocks <span class="badge" id="study-badge" style="display:none"></span></div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Generates study sessions around your exams and sports games using Gemini AI. Add events above first, then click Generate.</p>
+      <button class="btn-action" id="study-btn" onclick="generateStudyBlocks()" style="max-width:260px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Generate Study Blocks
+      </button>
+    </div>
+
+    <!-- ALL EVENTS TABLE -->
+    <div class="card full-width">
+      <div class="card-title">All Events <span id="total-label" style="font-size:13px;font-weight:400;color:var(--muted)">(0 total)</span></div>
+      <div style="overflow-x:auto">
+        <table class="events-table">
+          <thead><tr><th>Title</th><th>Date</th><th>Start</th><th>End</th><th>Source</th></tr></thead>
+          <tbody id="events-tbody">
+            <tr><td colspan="5" class="events-empty">No events yet — parse a syllabus or fetch a sports schedule above.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="card full-width">
+      <div class="card-title">Export Calendar</div>
+      <div class="export-buttons">
+        <button class="btn-ics" onclick="exportICS()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download .ics
+        </button>
+        <button class="btn-gcal" id="gcal-export-btn" onclick="exportGCal()" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload to Google Calendar
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- CREATE EVENT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create Calendar Event</div>
+      <button class="btn-close" onclick="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Title <span class="required">*</span></label>
+      <input class="form-input" type="text" placeholder="Event title" id="ev-title"/>
+    </div>
+    <div class="form-group form-row">
+      <div>
+        <label class="form-label">Start Date &amp; Time <span class="required">*</span></label>
+        <input class="form-input" type="datetime-local" id="ev-start"/>
+      </div>
+      <div>
+        <label class="form-label">End Date &amp; Time <span class="required">*</span></label>
+        <input class="form-input" type="datetime-local" id="ev-end"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" placeholder="Event description or notes" id="ev-desc"></textarea>
+    </div>
+    <div class="recurrence-section">
+      <div class="recurrence-title">Recurrence</div>
+      <div class="form-group">
+        <label class="form-label">Frequency</label>
+        <select class="select-styled" id="ev-freq" onchange="updateRecurrence()" style="margin-bottom:0">
+          <option value="">Does not repeat</option>
+          <option value="DAILY">Daily</option>
+          <option value="WEEKLY">Weekly</option>
+          <option value="MONTHLY">Monthly</option>
+          <option value="YEARLY">Yearly</option>
+        </select>
+      </div>
+      <div class="recurrence-extra" id="recurrence-extra">
+        <div class="form-row" style="margin-bottom:12px">
+          <div>
+            <label class="form-label">Interval <span class="required">*</span></label>
+            <input class="form-input" type="number" min="1" value="1" id="ev-interval"/>
+            <div class="hint" id="interval-hint">e.g., 2 = every 2 days</div>
+          </div>
+          <div>
+            <label class="form-label">End Date <span class="required">*</span></label>
+            <input class="form-input" type="date" id="ev-until"/>
+          </div>
+        </div>
+        <div id="weekly-extra" style="display:none;margin-bottom:12px">
+          <label class="form-label">Days of Week</label>
+          <div class="day-checkboxes">
+            <label class="day-cb" onclick="toggleDay(this,'MO')"><input type="checkbox"/>MO</label>
+            <label class="day-cb" onclick="toggleDay(this,'TU')"><input type="checkbox"/>TU</label>
+            <label class="day-cb" onclick="toggleDay(this,'WE')"><input type="checkbox"/>WE</label>
+            <label class="day-cb" onclick="toggleDay(this,'TH')"><input type="checkbox"/>TH</label>
+            <label class="day-cb" onclick="toggleDay(this,'FR')"><input type="checkbox"/>FR</label>
+            <label class="day-cb" onclick="toggleDay(this,'SA')"><input type="checkbox"/>SA</label>
+            <label class="day-cb" onclick="toggleDay(this,'SU')"><input type="checkbox"/>SU</label>
+          </div>
+        </div>
+        <div id="monthly-extra" style="display:none;margin-bottom:12px">
+          <label class="form-label">By Day or Date</label>
+          <input class="form-input" type="text" placeholder="e.g., 15 or 3FR (3rd Friday)" id="ev-bymonth"/>
+          <div class="hint">Number = day-of-month; alphanumeric = BYDAY (e.g. 3FR)</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-submit" onclick="submitEvent()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Event
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+const allEvents  = { syllabus:[], sports:[], manual:[], study:[] };
+let selectedTeams = new Map();
+let teamsCache    = new Map();
+let selectedDays  = new Set();
+let gcalConnected = false;
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+async function initLeagues() {
+  const sel = document.getElementById('league-select');
+  try {
+    const leagues = await fetch('/api/leagues').then(r => r.json());
+    sel.innerHTML = '';
+    leagues.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
+    updateTeams();
+  } catch { sel.innerHTML = '<option disabled>Failed to load</option>'; }
+}
+
+async function checkAuthStatus() {
+  try {
+    const { authenticated } = await fetch('/auth/status').then(r => r.json());
+    gcalConnected = authenticated;
+    updateGCalUI();
+    if (new URLSearchParams(window.location.search).get('auth') === 'success') {
+      showToast('Google Calendar connected!');
+      history.replaceState({}, '', '/');
+    }
+  } catch {}
+}
+
+function updateGCalUI() {
+  const pill = document.getElementById('gcal-pill');
+  const text = document.getElementById('gcal-pill-text');
+  const btn  = document.getElementById('gcal-export-btn');
+  if (gcalConnected) {
+    pill.className = 'gcal-pill on'; pill.onclick = null;
+    text.textContent = 'Google Calendar: Connected';
+    btn.disabled = false;
+  } else {
+    pill.className = 'gcal-pill off'; pill.onclick = connectGCal;
+    text.textContent = 'Google Calendar: Not Connected';
+    btn.disabled = true;
+  }
+}
+
+function connectGCal() { window.location.href = '/auth/google'; }
+
+// ── Login/Logout ───────────────────────────────────────────────────────────────
+function doLogin() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initLeagues();
+  checkAuthStatus();
+}
+function doLogout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+// ── PDF ────────────────────────────────────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+}
+
+async function handleFiles(files) {
+  const pdfs = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+  if (!pdfs.length) { showToast('Only PDF files supported', true); return; }
+  const list = document.getElementById('file-list');
+
+  for (const f of pdfs) {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${f.name}<span class="spinner" style="margin-left:auto"></span>`;
+    list.appendChild(item);
+
+    const fd = new FormData(); fd.append('file', f);
+    try {
+      const events = await fetch('/api/parse_pdf', { method:'POST', body:fd }).then(r => r.json());
+      if (events.error) throw new Error(events.error);
+      allEvents.syllabus.push(...events);
+      item.innerHTML = item.innerHTML.replace('<span class="spinner" style="margin-left:auto"></span>',
+        `<span style="margin-left:auto;font-size:11px;color:var(--teal-dark)">${events.length} events</span>`);
+      updateBadge('pdf-badge', allEvents.syllabus.length, 'events'); updateTable();
+      showToast(`${f.name}: ${events.length} event(s) parsed`);
+    } catch (ex) {
+      item.style.cssText = 'background:#fce4ec;color:#c62828';
+      showToast('PDF parse failed: ' + ex.message, true);
+    }
+  }
+}
+
+// ── Text ───────────────────────────────────────────────────────────────────────
+async function parseText() {
+  const text = document.getElementById('text-upload').value.trim();
+  if (!text) { showToast('Paste some text first', true); return; }
+  setLoading('parse-btn', true, 'Parsing...');
+  try {
+    const events = await fetch('/api/parse_text', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) }).then(r => r.json());
+    if (events.error) throw new Error(events.error);
+    allEvents.syllabus.push(...events);
+    updateBadge('text-badge', events.length, 'events');
+    updateBadge('pdf-badge', allEvents.syllabus.length, 'events');
+    updateTable(); showToast(`Parsed ${events.length} event(s)`);
+  } catch (ex) { showToast('Parse failed: ' + ex.message, true); }
+  finally { setLoading('parse-btn', false, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Parse Text'); }
+}
+
+// ── Sports ─────────────────────────────────────────────────────────────────────
+async function updateTeams() {
+  const league = document.getElementById('league-select').value;
+  if (!league) return;
+  const list = document.getElementById('teams-list');
+  if (teamsCache.has(league)) { renderTeamList(teamsCache.get(league), league); return; }
+  list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Loading...</div>';
+  try {
+    const teams = await fetch(`/api/teams/${league}`).then(r => r.json());
+    teamsCache.set(league, teams); renderTeamList(teams, league);
+  } catch { list.innerHTML = '<div style="padding:16px;text-align:center;color:#e74c3c;font-size:13px">Failed to load</div>'; }
+}
+
+function renderTeamList(teams, league) {
+  const list = document.getElementById('teams-list');
+  list.innerHTML = '';
+  teams.forEach(team => {
+    const item = document.createElement('div');
+    item.className = 'team-item' + (selectedTeams.has(team) ? ' selected' : '');
+    item.innerHTML = `<svg class="team-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>${team}<svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+    item.onclick = () => toggleTeam(item, team, league);
+    list.appendChild(item);
+  });
+}
+
+function toggleTeam(el, team, league) {
+  if (selectedTeams.has(team)) { selectedTeams.delete(team); el.classList.remove('selected'); }
+  else { selectedTeams.set(team, league); el.classList.add('selected'); }
+  updateTeamsLabel(); renderSelectedTags();
+}
+
+function removeTeam(t) { selectedTeams.delete(t); updateTeams(); renderSelectedTags(); }
+function updateTeamsLabel() { document.getElementById('teams-label').textContent = `Select Teams (${selectedTeams.size} selected)`; }
+
+function renderSelectedTags() {
+  const bar = document.getElementById('selected-teams-bar');
+  const con = document.getElementById('selected-tags');
+  con.innerHTML = '';
+  if (!selectedTeams.size) { bar.classList.remove('has-teams'); return; }
+  bar.classList.add('has-teams');
+  selectedTeams.forEach((league, team) => {
+    const tag = document.createElement('div'); tag.className = 'team-tag';
+    tag.innerHTML = `${team} <span style="font-size:10px;opacity:.6;margin-left:2px">(${league})</span><button class="team-tag-remove" onclick="removeTeam('${team.replace(/'/g,"\\'")}')">x</button>`;
+    con.appendChild(tag);
+  });
+}
+
+async function fetchSelectedSchedules() {
+  if (!selectedTeams.size) { showToast('Select at least one team first', true); return; }
+  setLoading('fetch-btn', true, 'Fetching...');
+  allEvents.sports = [];
+  let total = 0;
+  try {
+    for (const [team, league] of selectedTeams) {
+      showToast(`Fetching ${team}...`);
+      const events = await fetch('/api/schedule', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({team, league}) }).then(r => r.json());
+      if (events.error) throw new Error(events.error);
+      allEvents.sports.push(...events); total += events.length;
+    }
+    updateBadge('sports-badge', total, 'games'); updateTable();
+    showToast(`Fetched ${total} game(s) for ${selectedTeams.size} team(s)`);
+  } catch (ex) { showToast('Fetch failed: ' + ex.message, true); }
+  finally { setLoading('fetch-btn', false, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Fetch Schedules'); }
+}
+
+// ── Manual events ──────────────────────────────────────────────────────────────
+function openModal()  { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function updateRecurrence() {
+  const freq = document.getElementById('ev-freq').value;
+  const extra = document.getElementById('recurrence-extra');
+  if (!freq) { extra.classList.remove('show'); return; }
+  extra.classList.add('show');
+  document.getElementById('weekly-extra').style.display  = freq === 'WEEKLY' ? 'block' : 'none';
+  document.getElementById('monthly-extra').style.display = (freq === 'MONTHLY'||freq === 'YEARLY') ? 'block' : 'none';
+  const lbl = {DAILY:'days',WEEKLY:'weeks',MONTHLY:'months',YEARLY:'years'};
+  document.getElementById('interval-hint').textContent = `e.g., 2 = every 2 ${lbl[freq]}`;
+}
+
+function toggleDay(el, day) {
+  el.classList.toggle('checked');
+  if (selectedDays.has(day)) selectedDays.delete(day); else selectedDays.add(day);
+}
+
+function buildRRule() {
+  const freq = document.getElementById('ev-freq').value; if (!freq) return null;
+  const interval = document.getElementById('ev-interval').value || '1';
+  const until    = (document.getElementById('ev-until').value || '').replace(/-/g,'');
+  if (freq === 'DAILY') return `FREQ=DAILY;INTERVAL=${interval};UNTIL=${until}`;
+  if (freq === 'WEEKLY') { const bd = [...selectedDays].join(','); return `FREQ=WEEKLY;INTERVAL=${interval}${bd?';BYDAY='+bd:''};UNTIL=${until}`; }
+  if (freq === 'MONTHLY'||freq === 'YEARLY') {
+    const val = document.getElementById('ev-bymonth').value.trim();
+    const lbl = freq === 'MONTHLY' ? 'MONTHLY' : 'YEARLY';
+    if (val && /^\d+$/.test(val)) return `FREQ=${lbl};INTERVAL=${interval};BYMONTHDAY=${val};UNTIL=${until}`;
+    if (val) return `FREQ=${lbl};INTERVAL=${interval};BYDAY=${val};UNTIL=${until}`;
+    return `FREQ=${lbl};INTERVAL=${interval};UNTIL=${until}`;
+  }
+  return null;
+}
+
+function submitEvent() {
+  const title = document.getElementById('ev-title').value.trim();
+  const start = document.getElementById('ev-start').value;
+  const end   = document.getElementById('ev-end').value;
+  if (!title||!start||!end) { showToast('Fill in required fields', true); return; }
+  allEvents.manual.push({ title, start_time: start+':00', end_time: end+':00', description: document.getElementById('ev-desc').value, source:'manual', reoccuring: buildRRule() });
+  updateBadge('manual-badge', allEvents.manual.length, 'events');
+  updateTable(); showToast(`Event "${title}" added`); closeModal();
+  ['ev-title','ev-start','ev-end','ev-desc','ev-bymonth'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('ev-freq').value=''; document.getElementById('recurrence-extra').classList.remove('show');
+}
+
+// ── Study blocks ───────────────────────────────────────────────────────────────
+async function generateStudyBlocks() {
+  const combined = [...allEvents.syllabus, ...allEvents.sports, ...allEvents.manual];
+  if (!combined.length) { showToast('Add events first', true); return; }
+  setLoading('study-btn', true, 'Generating with Gemini...');
+  try {
+    const blocks = await fetch('/api/study_blocks', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({events: combined}) }).then(r => r.json());
+    if (blocks.error) throw new Error(blocks.error);
+    allEvents.study = blocks;
+    updateBadge('study-badge', blocks.length, 'blocks'); updateTable();
+    showToast(`Generated ${blocks.length} study block(s)`);
+  } catch (ex) { showToast('Study blocks failed: ' + ex.message, true); }
+  finally { setLoading('study-btn', false, '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Generate Study Blocks'); }
+}
+
+// ── Events table ───────────────────────────────────────────────────────────────
+function updateTable() {
+  const combined = [...allEvents.syllabus, ...allEvents.sports, ...allEvents.manual, ...allEvents.study];
+  combined.sort((a,b) => new Date(a.start_time) - new Date(b.start_time));
+  document.getElementById('total-label').textContent = `(${combined.length} total)`;
+  const tbody = document.getElementById('events-tbody');
+  if (!combined.length) { tbody.innerHTML = '<tr><td colspan="5" class="events-empty">No events yet.</td></tr>'; return; }
+  tbody.innerHTML = combined.map(e => {
+    const s   = new Date(e.start_time), en = new Date(e.end_time);
+    const src = e.source || 'manual';
+    const cls = src === 'syllabus_parser' ? 'syllabus' : src === 'sport_schedule_fetcher' ? 'sports' : src === 'study_block_generator' ? 'study' : 'manual';
+    const lbl = cls === 'syllabus' ? 'Syllabus' : cls === 'sports' ? 'Sports' : cls === 'study' ? 'Study Block' : 'Manual';
+    return `<tr>
+      <td style="font-weight:500">${e.title}</td>
+      <td>${s.toLocaleDateString('en-CA')}</td>
+      <td>${s.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${en.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td><span class="src-badge ${cls}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+function getAllEvents() { return [...allEvents.syllabus, ...allEvents.sports, ...allEvents.manual, ...allEvents.study]; }
+
+async function exportICS() {
+  const events = getAllEvents(); if (!events.length) { showToast('No events to export', true); return; }
+  try {
+    const blob = await fetch('/api/export/ics', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({events}) }).then(r => r.blob());
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'smartics.ics'; a.click();
+    showToast('Downloaded smartics.ics');
+  } catch (ex) { showToast('Export failed: ' + ex.message, true); }
+}
+
+async function exportGCal() {
+  if (!gcalConnected) { connectGCal(); return; }
+  const events = getAllEvents(); if (!events.length) { showToast('No events to export', true); return; }
+  const btn = document.getElementById('gcal-export-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading...';
+  try {
+    const data = await fetch('/api/export/gcal', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({events, calendar_name:'SmartIcs'}) }).then(r => r.json());
+    if (data.auth_url) { window.location.href = data.auth_url; return; }
+    if (data.error) throw new Error(data.error);
+    showToast(`Pushed ${data.total} events to Google Calendar`);
+  } catch (ex) { showToast('GCal export failed: ' + ex.message, true); }
+  finally {
+    btn.disabled = !gcalConnected;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload to Google Calendar';
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function updateBadge(id, n, unit) {
+  const el = document.getElementById(id);
+  el.textContent = `${n} ${unit}`; el.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+function setLoading(id, loading, html) {
+  const el = document.getElementById(id);
+  el.disabled = loading;
+  el.innerHTML = loading ? `<span class="spinner"></span> ${html}` : html;
+}
+
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast' + (isErr ? ' err' : '');
+  t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
